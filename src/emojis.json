@@ -1,0 +1,19 @@
+{
+    "tick": "<:ratio_tick:1487894048781111347>",
+    "cross": "<:ratio_cross:1487894053080010803>",
+    "wlemoji": "<:ratioDeveloper:1487894058226683965>",
+    "arrow": "<:ratio_arrow:1487894061594443788>",
+    "dot": "<:ratioDeveloper:1487894058226683965>",
+    "enabled": "<:ratio_enabled:1487894068594737163>",
+    "disabled": "<:ratio_disabled:1487894072717742151>",
+    "antinuke": "<:alerta:1487894082310246521>",
+    "error": "<a:ratio_error:1488048323062534225>",
+    "loading": "<a:loading:1488048325361139802>",
+    "tick2": "<:ratio_tick2:1488048329463169106>",
+    "enabled2": "<:ratio_enabled2:1488048333221265418>",
+    "disabled2": "<:ratio_disabled2:1488048337562107934>",
+    "automod": "<:automod:1488048340729073796>",
+    "back": "<:ratio_back:1488048344633839617>",
+    "inviteBtn": "1461812701973053480",
+    "supportBtn": "1461812634167808091"
+}
