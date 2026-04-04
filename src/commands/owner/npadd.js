@@ -1,11 +1,28 @@
-const moment = require("moment");
 const {
     ContainerBuilder,
     TextDisplayBuilder,
-    SeparatorBuilder,
-    SeparatorSpacingSize,
     MessageFlags,
 } = require("discord.js");
+
+function parseExpiry(str) {
+    const value = parseInt(str.slice(0, -1));
+    const unit = str.slice(-1);
+    if (isNaN(value)) return null;
+    const date = new Date();
+    switch (unit) {
+        case 'd': date.setDate(date.getDate() + value); break;
+        case 'm': date.setMonth(date.getMonth() + value); break;
+        default: return undefined; // signal invalid
+    }
+    return date;
+}
+
+function formatDate(date) {
+    return date.toLocaleString('en-US', {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: 'numeric', minute: '2-digit',
+    });
+}
 
 module.exports = {
     name: "npadd",
@@ -14,27 +31,18 @@ module.exports = {
     cooldown: 3,
     async run(client, message, args) {
         const allowedUsers = [...client.config.owner, ...(client.config.extraowners || [])];
-        if (!allowedUsers.includes(message.author.id)) return message.reply("You do not have permission to use this command.");
+        if (!allowedUsers.includes(message.author.id))
+            return message.reply("You do not have permission to use this command.");
 
         const user = message.mentions.users.first();
         if (!user) return message.reply("Please mention a user.");
 
         let duration = null;
         if (args[1]) {
-            const time = args[1];
-            const timeValue = parseInt(time.slice(0, -1));
-            const timeUnit = time.slice(-1);
-
-            switch (timeUnit) {
-                case "d":
-                    duration = moment().add(timeValue, "days").toDate();
-                    break;
-                case "m":
-                    duration = moment().add(timeValue, "months").toDate();
-                    break;
-                default:
-                    return message.reply("Invalid time format. Use `1d` for 1 day, `1m` for 1 month, etc.");
-            }
+            const expiry = parseExpiry(args[1]);
+            if (expiry === undefined)
+                return message.reply("Invalid time format. Use `1d` for 1 day, `1m` for 1 month, etc.");
+            duration = expiry;
         }
 
         let npList = await client.db.get("noprefix") || [];
@@ -48,7 +56,7 @@ module.exports = {
                     .setAccentColor(0x57F287)
                     .addTextDisplayComponents(
                         new TextDisplayBuilder().setContent(
-                            `${client.emoji.tick} Added ${user} to the noprefix list${duration ? ` until ${moment(duration).format("LLL")}` : ""}.`
+                            `${client.emoji.tick} Added ${user} to the noprefix list${duration ? ` until ${formatDate(duration)}` : ""}.`
                         )
                     ),
             ],
