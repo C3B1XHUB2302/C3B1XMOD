@@ -144,7 +144,7 @@ Standard moderation tools for server management.
    ```
    To run without sharding:
    ```
-   node src/app.js
+   node src/index.js
    ```
 
 ---
