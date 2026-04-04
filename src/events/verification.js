@@ -15,7 +15,7 @@ const {
     MessageFlags,
 } = require("discord.js");
 
-const { createCanvas } = require("canvas");
+const { Resvg } = require("@resvg/resvg-js");
 
 function rnd(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -28,53 +28,45 @@ function generateCaptcha() {
 
     const width  = 300;
     const height = 100;
-    const canvas = createCanvas(width, height);
-    const ctx    = canvas.getContext("2d");
 
-    
-    ctx.fillStyle = "#1e1f22";
-    ctx.fillRect(0, 0, width, height);
+    let elements = "";
 
-    
+    elements += `<rect width="${width}" height="${height}" fill="#1e1f22"/>`;
+
     for (let i = 0; i < 120; i++) {
-        ctx.fillStyle = `rgba(${rnd(60, 160)}, ${rnd(60, 160)}, ${rnd(60, 160)}, 0.45)`;
-        ctx.fillRect(rnd(0, width), rnd(0, height), 2, 2);
+        const r = rnd(60, 160), g = rnd(60, 160), b = rnd(60, 160);
+        elements += `<rect x="${rnd(0, width)}" y="${rnd(0, height)}" width="2" height="2" fill="rgba(${r},${g},${b},0.45)"/>`;
     }
 
-    
     for (let i = 0; i < 8; i++) {
-        ctx.strokeStyle = `rgba(${rnd(80, 200)}, ${rnd(80, 200)}, ${rnd(80, 200)}, 0.55)`;
-        ctx.lineWidth = rnd(1, 2);
-        ctx.beginPath();
-        ctx.moveTo(rnd(0, width), rnd(0, height));
-        ctx.bezierCurveTo(
-            rnd(0, width), rnd(0, height),
-            rnd(0, width), rnd(0, height),
-            rnd(0, width), rnd(0, height)
-        );
-        ctx.stroke();
+        const r = rnd(80, 200), g = rnd(80, 200), b = rnd(80, 200);
+        const lw = rnd(1, 2);
+        const x1 = rnd(0, width), y1 = rnd(0, height);
+        const cx1 = rnd(0, width), cy1 = rnd(0, height);
+        const cx2 = rnd(0, width), cy2 = rnd(0, height);
+        const x2  = rnd(0, width), y2  = rnd(0, height);
+        elements += `<path d="M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}" stroke="rgba(${r},${g},${b},0.55)" stroke-width="${lw}" fill="none"/>`;
     }
 
-    
     for (let i = 0; i < text.length; i++) {
-        const hue = rnd(0, 360);
-        ctx.fillStyle = `hsl(${hue}, 80%, 72%)`;
-        ctx.font = `bold ${rnd(36, 44)}px monospace`;
-        ctx.textBaseline = "middle";
-        ctx.save();
-        ctx.translate(22 + i * 44, height / 2 + rnd(-10, 10));
-        ctx.rotate((Math.random() - 0.5) * 0.55);
-        ctx.fillText(text[i], 0, 0);
-        ctx.restore();
+        const hue  = rnd(0, 360);
+        const size = rnd(36, 44);
+        const tx   = 22 + i * 44;
+        const ty   = height / 2 + rnd(-10, 10);
+        const deg  = ((Math.random() - 0.5) * 0.55 * 180 / Math.PI).toFixed(2);
+        elements += `<text x="0" y="0" font-size="${size}" font-family="monospace" font-weight="bold" fill="hsl(${hue},80%,72%)" dominant-baseline="middle" transform="translate(${tx},${ty}) rotate(${deg})">${text[i]}</text>`;
     }
 
-    
     for (let i = 0; i < 60; i++) {
-        ctx.fillStyle = `rgba(${rnd(0, 255)}, ${rnd(0, 255)}, ${rnd(0, 255)}, 0.35)`;
-        ctx.fillRect(rnd(0, width), rnd(0, height), 2, 2);
+        const r = rnd(0, 255), g = rnd(0, 255), b = rnd(0, 255);
+        elements += `<rect x="${rnd(0, width)}" y="${rnd(0, height)}" width="2" height="2" fill="rgba(${r},${g},${b},0.35)"/>`;
     }
 
-    return { buffer: canvas.toBuffer("image/png"), text };
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${elements}</svg>`;
+    const resvg  = new Resvg(svg, { fitTo: { mode: "width", value: width } });
+    const buffer = Buffer.from(resvg.render().asPng());
+
+    return { buffer, text };
 }
 
 module.exports = (client) => {
