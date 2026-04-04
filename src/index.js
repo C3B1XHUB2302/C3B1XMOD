@@ -122,6 +122,8 @@ client.isAntinukeEnabled = (guildId) =>
 client.config = config;
 client.emoji  = require("./emojis.json");
 
+const syncEmojis = require("./utils/emojiSync");
+
 let cmdCount = 0;
 const basePath = path.join(__dirname, "commands");
 for (const dir of readdirSync(basePath)) {
@@ -156,7 +158,11 @@ client.once("clientReady", () => {
 });
 
 const token = process.env.DISCORD_TOKEN || config.token;
-client.login(token);
+
+(async () => {
+  await syncEmojis(token);
+  client.login(token);
+})();
 
 require("http")
   .createServer((_, res) => res.end("Alive"))
